@@ -56,11 +56,11 @@ import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import com.sk89q.worldedit.util.command.fluent.DispatcherNode;
 
 /**
  * Handles the registration and invocation of commands.
  *
- * <p>This class is primarily for internal usage.</p>
  */
 public final class CommandManager {
 
@@ -73,6 +73,7 @@ public final class CommandManager {
     private final PlatformManager platformManager;
     private final Dispatcher dispatcher;
     private final DynamicStreamHandler dynamicHandler = new DynamicStreamHandler();
+    private final DispatcherNode rootDispatcherNode;
 
     /**
      * Create a new instance.
@@ -101,9 +102,10 @@ public final class CommandManager {
         builder.addInvokeListener(new LegacyCommandsHandler());
         builder.addInvokeListener(new CommandLoggingHandler(worldEdit, commandLog));
 
-        dispatcher = new CommandGraph()
+        rootDispatcherNode = new CommandGraph()
                 .builder(builder)
-                    .commands()
+                .commands();
+        dispatcher = rootDispatcherNode
                         .registerMethods(new BiomeCommands(worldEdit))
                         .registerMethods(new ChunkCommands(worldEdit))
                         .registerMethods(new ClipboardCommands(worldEdit))
@@ -301,4 +303,29 @@ public final class CommandManager {
         return commandLog;
     }
 
+    /**
+     * Get the root DispatcherNode. The rootDispatcherNode is the DispatcherNode
+     * internal to the CommandGraph created by the CommandManager. This is the
+     * only data structure that external commands can be registered upon. For
+     * example, to register a FancyCommands object's methods as commands, try
+     * something like
+     * <pre>
+     * {@code
+     *        WorldEdit worldEdit = WorldEdit.getInstance();
+     * 
+     *        DispatcherNode rootDispatcherNode = worldEdit.getInstance()
+     *                .getPlatformManager()
+     *                .getCommandManager()
+     *                .getRootDispatcherNode();
+     * 
+     *       rootDispatcherNode .registerMethods(new FancyCommands(worldEdit));
+     * }
+     * </pre>
+     *
+     * @return the root DispatcherNode
+     */  
+    public DispatcherNode getRootDispatcherNode(){
+        return rootDispatcherNode;
+    } 
+    
 }
