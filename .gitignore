@@ -6,6 +6,8 @@ eclipse
 *.iml
 *.ipr
 *.iws
+*~
+*.log
 
 bin
 build
@@ -18,3 +20,5 @@ run
 
 /dependency-reduced-pom.xml
 *-private.sh
+/.nb-gradle/*
+.nbproject
