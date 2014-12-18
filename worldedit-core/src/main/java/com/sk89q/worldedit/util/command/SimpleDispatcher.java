@@ -34,6 +34,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * A simple implementation of {@link Dispatcher}.
@@ -42,7 +44,7 @@ public class SimpleDispatcher implements Dispatcher {
 
     private final Map<String, CommandMapping> commands = new HashMap<String, CommandMapping>();
     private final SimpleDescription description = new SimpleDescription();
-
+    private static final Logger LOGGER = Logger.getLogger(SimpleDispatcher.class.getCanonicalName());
     /**
      * Create a new instance.
      */
@@ -55,6 +57,13 @@ public class SimpleDispatcher implements Dispatcher {
 
     @Override
     public void registerCommand(CommandCallable callable, String... alias) {
+        StringBuilder message = new StringBuilder();
+        message.append("Registering ");
+        for(String cmdAlias : alias){
+            message.append(" ");
+            message.append(cmdAlias);            
+        }
+        LOGGER.log(Level.FINE, message.toString() );
         CommandMapping mapping = new SimpleCommandMapping(callable, alias);
         
         // Check for replacements
