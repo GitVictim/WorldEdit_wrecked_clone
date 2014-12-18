@@ -56,15 +56,16 @@ import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import com.sk89q.worldedit.util.command.fluent.DispatcherNode;
 
 /**
  * Handles the registration and invocation of commands.
  *
- * <p>This class is primarily for internal usage.</p>
  */
 public final class CommandManager {
 
     public static final Pattern COMMAND_CLEAN_PATTERN = Pattern.compile("^[/]+");
+    public static final File WORLDEDIT_PLUGIN_FOLDER = new File("./plugins/WorldEdit");
     private static final Logger log = Logger.getLogger(CommandManager.class.getCanonicalName());
     private static final Logger commandLog = Logger.getLogger(CommandManager.class.getCanonicalName() + ".CommandLog");
     private static final java.util.regex.Pattern numberFormatExceptionPattern = java.util.regex.Pattern.compile("^For input string: \"(.*)\"$");
@@ -73,6 +74,7 @@ public final class CommandManager {
     private final PlatformManager platformManager;
     private final Dispatcher dispatcher;
     private final DynamicStreamHandler dynamicHandler = new DynamicStreamHandler();
+    private final DispatcherNode rootDispatcherNode;
 
     /**
      * Create a new instance.
@@ -85,7 +87,14 @@ public final class CommandManager {
         this.worldEdit = worldEdit;
         this.platformManager = platformManager;
 
-        // Register this instance for command events
+            /**FIXME. This construction 'chain' suffers from uninitialized instances being 
+            * passed in constructors.
+            * See http://www.ibm.com/developerworks/java/library/j-jtp0618/index.html#2
+            * Never pass 'this' from a Constructor, because the uninitialized 
+            * instance will be erroneous, as WorldEdit and PlatformManager are here.
+            * Write an init method, after construction.          
+            */ 
+        // Register this instance for command events        
         worldEdit.getEventBus().register(this);
 
         // Setup the logger
@@ -101,9 +110,18 @@ public final class CommandManager {
         builder.addInvokeListener(new LegacyCommandsHandler());
         builder.addInvokeListener(new CommandLoggingHandler(worldEdit, commandLog));
 
-        dispatcher = new CommandGraph()
+        rootDispatcherNode = new CommandGraph()
                 .builder(builder)
-                    .commands()
+                .commands();     
+        dispatcher = rootDispatcherNode
+       /**We should use platformManager.getConfiguration().getWorkingDirectory()
+        *  and pass it as an argument, but at this point in the code, PlatformManager
+        * is uninitialized!
+        * Lucky for us, getWorkingDirectory() is just new File("."),
+        * so we pass the static final File WORLDEDIT_PLUGIN_FOLDER
+        * initialized in this class before this constructor starts.
+        **/                   
+                        .registerJars(worldEdit,WORLDEDIT_PLUGIN_FOLDER)
                         .registerMethods(new BiomeCommands(worldEdit))
                         .registerMethods(new ChunkCommands(worldEdit))
                         .registerMethods(new ClipboardCommands(worldEdit))
@@ -183,7 +201,7 @@ public final class CommandManager {
             String[] newSplit = new String[split.length + 1];
             System.arraycopy(split, 0, newSplit, 1, split.length);
             newSplit[0] = "cs";
-            newSplit[1] = newSplit[1];
+            newSplit[1] = split[1];
             split = newSplit;
         }
 
@@ -301,4 +319,29 @@ public final class CommandManager {
         return commandLog;
     }
 
+    /**
+     * Get the root DispatcherNode. The rootDispatcherNode is the DispatcherNode
+     * internal to the CommandGraph created by the CommandManager. This is the
+     * only data structure that external commands can be registered upon. For
+     * example, to register a FancyCommands object's methods as commands, try
+     * something like
+     * <pre>
+     * {@code
+     *        WorldEdit worldEdit = WorldEdit.getInstance();
+     * 
+     *        DispatcherNode rootDispatcherNode = worldEdit.getInstance()
+     *                .getPlatformManager()
+     *                .getCommandManager()
+     *                .getRootDispatcherNode();
+     * 
+     *       rootDispatcherNode .registerMethods(new FancyCommands(worldEdit));
+     * }
+     * </pre>
+     *
+     * @return the root DispatcherNode
+     */  
+    public DispatcherNode getRootDispatcherNode(){
+        return rootDispatcherNode;
+    } 
+    
 }
