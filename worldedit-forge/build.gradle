@@ -1,5 +1,6 @@
 buildscript {
     repositories {
+        mavenLocal()        
         mavenCentral()
         maven { url = "http://files.minecraftforge.net/maven" }
         maven { url = "https://oss.sonatype.org/content/repositories/snapshots/" }
@@ -7,23 +8,27 @@ buildscript {
     }
 
     dependencies {
-        classpath 'net.minecraftforge.gradle:ForgeGradle:1.2-SNAPSHOT'
+        classpath 'net.minecraftforge.gradle:ForgeGradle:1.3-SNAPSHOT'
     }
 }
 
 apply plugin: 'forge'
 
 dependencies {
+    assert delegate == project.dependencies    
     compile project(':worldedit-core')
     testCompile group: 'org.mockito', name: 'mockito-core', version:'1.9.0-rc1'
 }
 
 minecraft {
-    ext.forgeVersion = "10.13.1.1225"
-    version = "1.7.10-$forgeVersion"
+    ext.forgeVersion = "11.14.1.1332"
+    version = "1.8-$forgeVersion"
 
     replaceIn "com/sk89q/worldedit/forge/ForgeWorldEdit.java"
     replace "%VERSION%", project.version
+    String minecraftObjectClassName = project.minecraft.getClass().getName()
+    String namingMessage = "minecraftObjectClassName = " +  minecraftObjectClassName
+    logger.error(namingMessage)
 }
 
 project.archivesBaseName = "${project.archivesBaseName}-mc${minecraft.version}"
