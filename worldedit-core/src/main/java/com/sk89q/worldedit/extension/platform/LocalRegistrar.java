@@ -23,7 +23,6 @@
 package com.sk89q.worldedit.extension.platform;
 
 import com.sk89q.minecraft.util.commands.Command;
-import com.sk89q.minecraft.util.commands.CommandsManager;
 import com.sk89q.worldedit.util.command.fluent.DispatcherNode;
 import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
@@ -327,21 +326,42 @@ public class LocalRegistrar {
 
     private static class ClassNameFilter {
 
-        private static final List<String> unaccptable = Arrays.asList("nmsblocks.CBXNmsBlock_1710");
+        private static final List<String> UNACCEPTABLE = Arrays.asList(
+                "nmsblocks.CBXNmsBlock_1710",
+                "com.sk89q.worldedit.command.BiomeCommands",
+                "com.sk89q.worldedit.command.BrushCommands",
+                "com.sk89q.worldedit.command.ChunkCommands",
+                "com.sk89q.worldedit.command.ClipboardCommands",
+                "com.sk89q.worldedit.command.GeneralCommands",
+                "com.sk89q.worldedit.command.GenerationCommands",
+                "com.sk89q.worldedit.command.HistoryCommands",
+                "com.sk89q.worldedit.command.NavigationCommands",
+                "com.sk89q.worldedit.command.RegionCommands",
+                "com.sk89q.worldedit.command.SchematicCommands",
+                "com.sk89q.worldedit.command.ScriptingCommands",
+                "com.sk89q.worldedit.command.SelectionCommands",
+                "com.sk89q.worldedit.command.SnapshotCommands",
+                "com.sk89q.worldedit.command.SnapshotUtilCommands",
+                "com.sk89q.worldedit.command.SuperPickaxeCommands",
+                "com.sk89q.worldedit.command.ToolCommands",
+                "com.sk89q.worldedit.command.ToolUtilCommands",
+                "com.sk89q.worldedit.command.UtilityCommands",
+                "com.sk89q.worldedit.command.WorldEditCommands"
+        );
 
         public String getDescription() {
             return "Classes names where no load should be attempted.";
         }
 
         public boolean accept(String className) {
-            return !unaccptable.contains(className);
+            return !UNACCEPTABLE.contains(className);
         }
     }
 
     /**Not ready for use yet...**/
     private static class URLFilter {
 
-        private static final List<java.net.URL> unaccptable;
+        private static final List<java.net.URL> UNACCEPTABLE;
 
         static {
              List<java.net.URL> tmpList = Collections.emptyList();
@@ -350,7 +370,7 @@ public class LocalRegistrar {
             } catch (MalformedURLException ex) {
                 LOGGER.log(Level.SEVERE, ex.getMessage(), ex);
             }
-            unaccptable = tmpList;
+            UNACCEPTABLE = tmpList;
         }
 
         public String getDescription() {
@@ -358,7 +378,7 @@ public class LocalRegistrar {
         }
 
         public boolean accept(java.net.URL someURL) {
-            return !unaccptable.contains(someURL);
+            return !UNACCEPTABLE.contains(someURL);
         }
     }  
     /**
