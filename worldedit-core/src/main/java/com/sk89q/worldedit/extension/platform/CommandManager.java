@@ -162,6 +162,20 @@ public final class CommandManager {
                             .parent()
                         .graph()
                 .getDispatcher();
+        try {
+            /**FIXME. This init chain suffers from uninitialized instances being 
+             * passed in constructors.**/
+            /*See http://www.ibm.com/developerworks/java/library/j-jtp0618/index.html#2
+             Never pass 'this' from a Constructor, because the uninitialized 
+            instance will be erronious, as they are here.
+            */
+            /**I would like to use platformManager.getConfiguration().getWorkingDirectory() but it is uninitialized!
+             Lucky for us, getWorkingDirectory() is just new File(".") anyway. **/
+            LocalRegistrar.registerJaredCommands(new File("."), rootDispatcherNode); /*Adds commands within jars in WorldEdit dir*/
+
+        } catch (Exception ex) {
+            log.log(Level.SEVERE, ex.getMessage(), ex);
+        }
     }
 
     void register(Platform platform) {
