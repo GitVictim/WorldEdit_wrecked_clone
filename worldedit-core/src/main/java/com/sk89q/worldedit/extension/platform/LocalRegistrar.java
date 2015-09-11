@@ -615,7 +615,7 @@ public class LocalRegistrar {
         return _dispatcherNode;
     }
 
-    private File _extenensionsDir;
+    private final File _extenensionsDir;
     private static final List<URL> CLASS_URLS = new ArrayList<URL>(4);
     private static final Logger LOGGER = Logger.getLogger(LocalRegistrar.class.getName());
     private static final IsDirFilter DIR_FILTER = new IsDirFilter();
