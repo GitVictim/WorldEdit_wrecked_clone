@@ -63,7 +63,7 @@ public class SimpleDispatcher implements Dispatcher {
             message.append(" ");
             message.append(cmdAlias);            
         }
-        LOGGER.log(Level.FINE, message.toString() );
+        LOGGER.log(Level.WARNING, message.toString() );
         CommandMapping mapping = new SimpleCommandMapping(callable, alias);
         
         // Check for replacements
