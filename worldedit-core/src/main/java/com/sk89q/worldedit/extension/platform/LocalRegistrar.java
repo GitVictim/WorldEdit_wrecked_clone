@@ -55,7 +55,7 @@ import java.util.List;
  * <p>
  * Developer Notes:
  * <p>
- * Also, the available <code>Logger</code> does not seem to  support the
+ * The available <code>Logger</code> does not seem to  support the
  * default Loggers formatting functionality, so logs concatenate strings instead
  * of using <code>{}</code>.
  * @author charles@hymes.name
@@ -465,7 +465,7 @@ public class LocalRegistrar {
             for (JarEntry someZipEntry : Collections.list(jarfile.entries())) {
                 entryName = someZipEntry.getName();
                 if (entryName.endsWith(".class") && !entryName.contains("$")) {
-                    LOGGER.log(Level.FINE, "Found class entry " + entryName.toString());
+                    LOGGER.log(Level.FINE, "Found class entry " + entryName);
                     /**
                      * Logger does not support {} formatting*
                      */
@@ -484,13 +484,13 @@ public class LocalRegistrar {
                                         .registerMethods(entryClass)
                                         .parent();
                             } catch (IllegalArgumentException iae) {
-                                LOGGER.log(Level.WARNING, entryName.toString() + " not registered becuase it has at least one alias that has been previously registered");
+                                LOGGER.log(Level.WARNING, entryName + " not registered becuase it has at least one alias that has been previously registered");
                             }
                         } else {
-                            LOGGER.log(Level.FINE, entryName.toString() + " is not annotated as a Command");
+                            LOGGER.log(Level.FINE, entryName + " is not annotated as a Command");
                         }
                     } else {
-                        LOGGER.log(Level.FINE, "Could not load " + entryName.toString());
+                        LOGGER.log(Level.FINE, "Could not load " + entryName);
                     }
                 }
             }
@@ -575,7 +575,7 @@ public class LocalRegistrar {
      * allows for easy deployment of Java based commands.
      * @param wcPluginDir the plugin directory, where the command jars are.
      * @param dispatcherNode the 
-     * @return
+     * @return The same DispatcherNode passed as an argument.
      */
     public static DispatcherNode registerJaredCommands(File wcPluginDir, DispatcherNode dispatcherNode){
         try {
@@ -615,15 +615,14 @@ public class LocalRegistrar {
         return _dispatcherNode;
     }
 
-    private File _extenensionsDir = null;
+    private File _extenensionsDir;
     private static final List<URL> CLASS_URLS = new ArrayList<URL>(4);
-//    private static final Logger LOGGER = Logger.getLogger("Minecraft.WorldEdit");
     private static final Logger LOGGER = Logger.getLogger(LocalRegistrar.class.getName());
     private static final IsDirFilter DIR_FILTER = new IsDirFilter();
     private static final IsFileFilter FILE_FILTER = new IsFileFilter();
     private static final IsJarFilter JAR_FILTER = new IsJarFilter();
     private static final ClassNameFilter CLASSNAME_FILTER = new ClassNameFilter();
     private final ClasspathJarAppender _loaderStub = new ClasspathJarAppender();
-    public static final int MAX_DEPTH = 5;
+    private static final int MAX_DEPTH = 5;
 
 }
