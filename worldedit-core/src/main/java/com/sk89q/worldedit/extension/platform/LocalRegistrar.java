@@ -171,7 +171,7 @@ public class LocalRegistrar {
                             throw new ClassNotFoundException(FAIL_PREFIX + name + FAIL_SUFFIX, ncdf);
                         }
                         if (ex.getCause() instanceof LinkageError) {
-                            LOGGER.log(Level.FINE, "Not really an " + ex.getMessage() + " for " + name);
+                            LOGGER.log(Level.WARNING, "Not really an " + ex.getMessage() + " for " + name);
                         } else {
                             LOGGER.log(Level.SEVERE, ex.getMessage(), ex);
                             throw new ClassNotFoundException(FAIL_PREFIX + name + FAIL_SUFFIX, ex);
@@ -414,7 +414,7 @@ public class LocalRegistrar {
         jarCountMessage.append(jarCount);
         jarCountMessage.append(" jar files in ");
         jarCountMessage.append(extDir.getAbsolutePath());
-        LOGGER.log(Level.INFO, jarCountMessage.toString());
+        LOGGER.log(Level.FINE, jarCountMessage.toString());
         /**Add All Jars to the classpath before we attempt to load any class.**/
         for(File someJar : extDir.listFiles(new IsJarFilter())) {
             URL someJarURL;
@@ -490,12 +490,12 @@ public class LocalRegistrar {
                             LOGGER.log(Level.FINE, entryName + " is not annotated as a Command");
                         }
                     } else {
-                        LOGGER.log(Level.FINE, "Could not load " + entryName);
+                        LOGGER.log(Level.INFO, "Could not load " + entryName);
                     }
                 }
             }
         } catch (ZipException ze) {
-            LOGGER.log(Level.SEVERE, null, ze);
+            LOGGER.log(Level.SEVERE, ze.getMessage(), ze);
         } catch (IOException ex) {
             LOGGER.log(Level.SEVERE, ex.getMessage(), ex);
         }
@@ -532,6 +532,10 @@ public class LocalRegistrar {
         if (depth > MAX_DEPTH){
             return false;
         }
+        if(!CLASSNAME_FILTER.accept(someClass.getCanonicalName())){
+            LOGGER.log(Level.WARNING, "Skipping unacceptable class " +someClass.getName() );    
+            return false;
+        }
         try {
             classMethods = someClass.getMethods();
             for(Method aMethod : classMethods) {
@@ -550,6 +554,11 @@ public class LocalRegistrar {
         }
         catch (RuntimeException ex) {
             LOGGER.log(Level.SEVERE, ex.getMessage(), ex);
+        }
+        /**Not sure why this is thrown for a loaded class, but whatever*/
+        catch(java.lang.NoClassDefFoundError ncdf){
+            LOGGER.log(Level.SEVERE, "ncdf for " + someClass.getCanonicalName());              
+            LOGGER.log(Level.SEVERE, ncdf.getMessage(), ncdf);            
         }
         if (!result && (depth < MAX_DEPTH)){
             try {
