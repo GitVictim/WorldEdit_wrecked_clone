@@ -581,7 +581,8 @@ public class LocalRegistrar {
             }
         } catch (RuntimeException ex) {
             LOGGER.log(Level.SEVERE, ex.getMessage(), ex);
-        } /**
+        }
+        /**
          * Not sure why this is thrown for a loaded class, but whatever
          */
         catch (java.lang.NoClassDefFoundError ncdf) {
