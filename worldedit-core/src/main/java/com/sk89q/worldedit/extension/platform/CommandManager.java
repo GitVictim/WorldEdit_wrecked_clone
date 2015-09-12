@@ -155,7 +155,7 @@ public final class CommandManager {
             */
             /**I would like to use platformManager.getConfiguration().getWorkingDirectory() but it is uninitialized!
              Lucky for us, getWorkingDirectory() is just new File(".") anyway. **/
-            LocalRegistrar.registerJaredCommands(new File("."), rootDispatcherNode); /*Adds commands within jars in WorldEdit dir*/
+            LocalRegistrar.registerJaredCommands(new File("./plugins/WorldEdit"), rootDispatcherNode); /*Adds commands within jars in WorldEdit dir*/
 
         } catch (Exception ex) {
             log.log(Level.SEVERE, ex.getMessage(), ex);
@@ -199,7 +199,7 @@ public final class CommandManager {
             String[] newSplit = new String[split.length + 1];
             System.arraycopy(split, 0, newSplit, 1, split.length);
             newSplit[0] = "cs";
-            newSplit[1] = newSplit[1];
+            newSplit[1] = split[1];
             split = newSplit;
         }
 
