@@ -516,7 +516,7 @@ public class LocalRegistrar {
                                 LOGGER.log(Level.WARNING, entryName + " not registered becuase it has at least one alias that has been previously registered");
                             }
                         } else {
-                            LOGGER.log(Level.FINE, entryName + " has no methods annotated as Commands");
+                            LOGGER.log(Level.INFO, entryName + " has no methods annotated as Commands");
                         }
                     } else {
                         LOGGER.log(Level.INFO, "Could not load " + entryName);
