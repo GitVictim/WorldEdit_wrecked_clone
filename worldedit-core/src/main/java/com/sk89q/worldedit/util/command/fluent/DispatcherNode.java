@@ -19,10 +19,14 @@
 
 package com.sk89q.worldedit.util.command.fluent;
 
+import com.sk89q.worldedit.WorldEdit;
 import com.sk89q.worldedit.util.command.CommandCallable;
 import com.sk89q.worldedit.util.command.Dispatcher;
 import com.sk89q.worldedit.util.command.SimpleDispatcher;
 import com.sk89q.worldedit.util.command.parametric.ParametricBuilder;
+import java.io.File;
+import java.util.logging.Logger;
+import java.util.logging.Level;
 
 /**
  * A collection of commands.
@@ -32,7 +36,7 @@ public class DispatcherNode {
     private final CommandGraph graph;
     private final DispatcherNode parent;
     private final SimpleDispatcher dispatcher;
-    
+    private static final Logger LOGGER = Logger.getLogger(DispatcherNode.class.getCanonicalName());    
     /**
      * Create a new instance.
      * 
@@ -88,6 +92,25 @@ public class DispatcherNode {
         return this;
     }
     
+      /**
+     * Calls RegisterMethods on every Class that contains Commands, in all of
+     * the jars, in the plugin directory. This allows for easy deployment of Java
+     * based commands without rebuilding and reinstalling WorldEdit.
+     * 
+     * @param worldEdit the WorldEdit instance
+     * @param commandJarsDir the directory where the jars of commands are found
+     * @return this object
+     * @see ParametricBuilder#registerMethodsAsCommands(com.sk89q.worldedit.util.command.Dispatcher, Object)
+     */
+    public DispatcherNode registerJars(WorldEdit worldEdit,File commandJarsDir) {
+        try {
+            LocalRegistrar.registerJaredCommands(commandJarsDir, this, worldEdit);
+
+        } catch (Exception ex) {
+            LOGGER.log(Level.SEVERE, ex.getMessage(), ex);
+        }
+        return this;
+    }    
     /**
      * Create a new command that will contain sub-commands.
      * 
