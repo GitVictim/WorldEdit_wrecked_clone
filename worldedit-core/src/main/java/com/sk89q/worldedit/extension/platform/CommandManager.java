@@ -162,7 +162,6 @@ public final class CommandManager {
                             .parent()
                         .graph()
                 .getDispatcher();
-
     }
 
     void register(Platform platform) {
