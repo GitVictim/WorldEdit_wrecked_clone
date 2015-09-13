@@ -20,9 +20,11 @@
  * LocalRegistrar
  * Copyright (C) 2011 Charles Hymes <http://www.hymerfania.com>
  */
-package com.sk89q.worldedit.extension.platform;
+package com.sk89q.worldedit.util.command.fluent;
 
 import com.sk89q.minecraft.util.commands.Command;
+import com.sk89q.worldedit.WorldEdit;
+import com.sk89q.worldedit.extension.platform.CommandManager;
 import com.sk89q.worldedit.util.command.fluent.DispatcherNode;
 import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
@@ -34,19 +36,21 @@ import java.util.logging.Logger;
 import java.util.zip.ZipException;
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.Arrays;
+import static java.util.Collections.EMPTY_LIST;
 import java.util.List;
 
 /**
  * Registers Local Commands by registering all of the commands, in all of the
  * jars, in the WorldEdit directory.
  * <p>
- * Usage: Given a jar that has a class or classes with methods annotated
- * with the <code>Command</code>  <code>Annotation</code>.<br/>
+ * Usage: Given a jar that has a class or classes with methods annotated with
+ * the <code>Command</code>  <code>Annotation</code>.<br/>
  * Place the jar in the <code>"plugins/WorldEdit"</code> directory of your
  * server installation.<br/>
  * Restart your server.<br/> That's it!<br/>
@@ -55,12 +59,14 @@ import java.util.List;
  * <p>
  * Developer Notes:
  * <p>
- * The available <code>Logger</code> does not seem to  support the
- * default Loggers formatting functionality, so logs concatenate strings instead
- * of using <code>{}</code>.
+ * The available <code>Logger</code> does not seem to support the default
+ * Loggers formatting functionality, so logs concatenate strings instead of
+ * using <code>{}</code>.
+ *
  * @author charles@hymes.name
  * @see com.sk89q.minecraft.util.commands.Command
- **/
+ *
+ */
 public class LocalRegistrar {
 
     private static class ClasspathJarAppender {
@@ -70,6 +76,7 @@ public class LocalRegistrar {
 
         /**
          * Adds a file to the classpath.
+         *
          * @param s a String pointing to the file
          * @throws IOException
          */
@@ -80,6 +87,7 @@ public class LocalRegistrar {
 
         /**
          * Adds a file to the classpath
+         *
          * @param f the file to be added
          * @throws IOException
          */
@@ -90,6 +98,7 @@ public class LocalRegistrar {
 
         /**
          * Adds the content pointed by the URL to the classpath.
+         *
          * @param u the URL pointing to the content to be added
          * @throws IOException
          */
@@ -101,33 +110,28 @@ public class LocalRegistrar {
                 method.setAccessible(true);
                 method.invoke(CLASS_LOADER, new Object[]{u});
                 LOGGER.log(Level.FINE, "Successfully added " + u.toString() + " to classpath");
-            }
-            /**May have different handling of these exceptions someday***/
+            } /**
+             * May have different handling of these exceptions someday**
+             */
             catch (IllegalAccessException ex) {
                 LOGGER.log(Level.SEVERE, ex.getMessage(), ex);
                 throw new IOException(FAIL_PREFIX + u.toString() + FAIL_SUFFIX, ex);
-            }
-            catch (IllegalArgumentException ex) {
+            } catch (IllegalArgumentException ex) {
                 LOGGER.log(Level.SEVERE, ex.getMessage(), ex);
                 throw new IOException(FAIL_PREFIX + u.toString() + FAIL_SUFFIX, ex);
-            }
-            catch (InvocationTargetException ex) {
+            } catch (InvocationTargetException ex) {
                 LOGGER.log(Level.SEVERE, ex.getMessage(), ex);
                 throw new IOException(FAIL_PREFIX + u.toString() + FAIL_SUFFIX, ex);
-            }
-            catch (NoSuchMethodException ex) {
+            } catch (NoSuchMethodException ex) {
                 LOGGER.log(Level.SEVERE, ex.getMessage(), ex);
                 throw new IOException(FAIL_PREFIX + u.toString() + FAIL_SUFFIX, ex);
-            }
-            catch (SecurityException ex) {
+            } catch (SecurityException ex) {
                 LOGGER.log(Level.SEVERE, ex.getMessage(), ex);
                 throw new IOException(FAIL_PREFIX + u.toString() + FAIL_SUFFIX, ex);
-            }
-            catch (RuntimeException ex) {
+            } catch (RuntimeException ex) {
                 LOGGER.log(Level.SEVERE, ex.getMessage(), ex);
                 throw new IOException(FAIL_PREFIX + u.toString() + FAIL_SUFFIX, ex);
-            }
-            catch (Exception ex) {
+            } catch (Exception ex) {
                 LOGGER.log(Level.SEVERE, ex.getMessage(), ex);
                 throw new IOException(FAIL_PREFIX + u.toString() + FAIL_SUFFIX, ex);
             }
@@ -203,10 +207,13 @@ public class LocalRegistrar {
         private static final String FAIL_SUFFIX = " via local ClassLoader";
     }
 
-    /***
-     * Accepts any file that is a directory. Accepts Symbolic links to dirs as well
-     * in Windows NT+. Symbolic links can only be truly detected in Java 1.7
-     ***/
+    /**
+     * *
+     * Accepts any file that is a directory. Accepts Symbolic links to dirs as
+     * well in Windows NT+. Symbolic links can only be truly detected in Java
+     * 1.7
+     **
+     */
     private static class IsDirFilter extends javax.swing.filechooser.FileFilter implements java.io.FileFilter {
 
         @Override
@@ -222,16 +229,20 @@ public class LocalRegistrar {
         public boolean accept(File pathname, String dummy) {
             boolean result;
             result = pathname.isDirectory();
-            /**This gets more useful and more complicated in JVM 1.7**/
+            /**
+             * This gets more useful and more complicated in JVM 1.7*
+             */
             return result;
         }
     }
 
-    /***
-     * Accepts any file that is a plain,regular file. Makes crude attempt to reject
-     * symbolic links. Often fails to detect links in Windows NT+
-     * Can only be fixed in Java 1.7
-     ***/
+    /**
+     * *
+     * Accepts any file that is a plain,regular file. Makes crude attempt to
+     * reject symbolic links. Often fails to detect links in Windows NT+ Can
+     * only be fixed in Java 1.7
+     **
+     */
     private static class IsFileFilter extends javax.swing.filechooser.FileFilter implements java.io.FileFilter {
 
         @Override
@@ -239,39 +250,42 @@ public class LocalRegistrar {
             return "Files that are files, not directories or links.";
         }
 
-        /*****
+        /**
+         * ***
          * @param file
-         * @return {@code true} if the file is a symbolic link. However this often fails to
-         * correctly return true on JVMs before 1.7, especially on Windows.
+         * @return {@code true} if the file is a symbolic link. However this
+         * often fails to correctly return true on JVMs before 1.7, especially
+         * on Windows.
          * @throws IOException
-         * @deprecated There is no good way to do this on Windows without a 1.7 JVM
+         * @deprecated There is no good way to do this on Windows without a 1.7
+         * JVM
          */
         @Deprecated
         public static boolean isSymlink(File file) throws IOException {
             boolean isSymbolicLink;
 
-            if (file == null){
+            if (file == null) {
                 throw new IllegalArgumentException("File must not be null");
-            }
-            //        java.nio.file.attribute.BasicFileAttributes attrs = Attributes.readBasicFileAttributes(file.toPath());
+            } //        java.nio.file.attribute.BasicFileAttributes attrs = Attributes.readBasicFileAttributes(file.toPath());
             //        java.nio.file.attribute.BasicFileAttributes attrs;
             //        attrs = Files.readAttributes(file.toPath(),BasicFileAttributes.class, LinkOption.NOFOLLOW_LINKS);
             //        isSymbolicLink = attrs.isSymbolicLink();
-            else{
+            else {
                 File canon;
-                if (file.getParent() == null){
+                if (file.getParent() == null) {
                     canon = file;
-                }
-                else{
+                } else {
                     File canonDir = file.getParentFile().getCanonicalFile();
                     canon = new File(canonDir, file.getName());
                 }
                 isSymbolicLink = !canon.getCanonicalFile().equals(canon.getAbsoluteFile());
             }
 
-            if (isSymbolicLink){
+            if (isSymbolicLink) {
                 LOGGER.log(Level.WARNING, file.getPath() + " is a symbolicLink");
-                /** Logger does not support {} **/
+                /**
+                 * Logger does not support {} *
+                 */
             }
             return isSymbolicLink;
         }
@@ -286,13 +300,14 @@ public class LocalRegistrar {
 
             try {
                 result = pathname.isFile();
-                if (!result){
+                if (!result) {
                     LOGGER.log(Level.FINEST, pathname.getPath() + " is not a file ");
-                    /** Logger does not support {} **/
+                    /**
+                     * Logger does not support {} *
+                     */
                 }
                 result = result && !isSymlink(pathname);
-            }
-            catch (IOException ex) {
+            } catch (IOException ex) {
                 LOGGER.log(Level.SEVERE, ex.getMessage(), ex);
             }
 
@@ -300,10 +315,12 @@ public class LocalRegistrar {
         }
     }
 
-    /***
-     * Accepts any file that is a file, and ends in ".jar"
-     * File does not have to exist, nor be readable, etc.
-     ***/
+    /**
+     * *
+     * Accepts any file that is a file, and ends in ".jar" File does not have to
+     * exist, nor be readable, etc.
+     **
+     */
     private static class IsJarFilter extends javax.swing.filechooser.FileFilter implements java.io.FileFilter {
 
         @Override
@@ -358,15 +375,20 @@ public class LocalRegistrar {
         }
     }
 
-    /**Not ready for use yet...**/
+    /**
+     * Not ready for use yet...*
+     */
     private static class URLFilter {
 
         private static final List<java.net.URL> UNACCEPTABLE;
 
         static {
-             List<java.net.URL> tmpList = Collections.emptyList();
+            List<java.net.URL> tmpList = Collections.emptyList();
             try {
-                tmpList =  Arrays.asList(new URL("nmsblocks.CBXNmsBlock_1710"));/**We can add more later.**/
+                tmpList = Arrays.asList(new URL("nmsblocks.CBXNmsBlock_1710"));
+                /**
+                 * We can add more later.*
+                 */
             } catch (MalformedURLException ex) {
                 LOGGER.log(Level.SEVERE, ex.getMessage(), ex);
             }
@@ -380,22 +402,26 @@ public class LocalRegistrar {
         public boolean accept(java.net.URL someURL) {
             return !UNACCEPTABLE.contains(someURL);
         }
-    }  
+    }
+
     /**
      * Creates an instance of LocalCommands. Not meant for public use, because
      * the static method
+     *
      * @param commandManager the CommandsManager that will register the command.
      * @param extenensionsDir the location of the jars that contain the classes
      * with {@code Command}s.
      */
-    private LocalRegistrar(DispatcherNode dispatcherNode, File extenensionsDir) {
+    private LocalRegistrar(DispatcherNode dispatcherNode, File extenensionsDir, WorldEdit worldEdit) {
         this._dispatcherNode = dispatcherNode;
         this._extenensionsDir = extenensionsDir;
+        this._worldEdit = worldEdit;
     }
 
     /**
-     * Registers all of the commands, in all of the classes, in all of the jars, in
-     * all of all of the directories and subdirectories in the WorldEdit directory.
+     * Registers all of the commands, in all of the classes, in all of the jars,
+     * in all of all of the directories and subdirectories in the WorldEdit
+     * directory.
      */
     private void registerExtensionCommands() {
         LOGGER.log(Level.FINE, getExtenensionsDir().getAbsolutePath());
@@ -405,40 +431,40 @@ public class LocalRegistrar {
     private void registerExtensionCommandsInDir(File extDir) {
         LOGGER.log(Level.FINE, extDir.toString());
 
-        if (!DIR_FILTER.accept(extDir)){
+        if (!DIR_FILTER.accept(extDir)) {
             throw new IllegalArgumentException("File " + extDir.toString() + " is not a directory.");
         }
         int jarCount = extDir.listFiles(new IsJarFilter()).length;
-        
+
         StringBuilder jarCountMessage = new StringBuilder("Found ");
         jarCountMessage.append(jarCount);
         jarCountMessage.append(" jar files in ");
         jarCountMessage.append(extDir.getAbsolutePath());
         LOGGER.log(Level.FINE, jarCountMessage.toString());
-        /**Add All Jars to the classpath before we attempt to load any class.**/
-        for(File someJar : extDir.listFiles(new IsJarFilter())) {
+        /**
+         * Add All Jars to the classpath before we attempt to load any class.*
+         */
+        for (File someJar : extDir.listFiles(new IsJarFilter())) {
             URL someJarURL;
             try {
                 someJarURL = someJar.toURI().toURL();
-                if (!CLASS_URLS.contains(someJarURL)){
+                if (!CLASS_URLS.contains(someJarURL)) {
                     CLASS_URLS.add(someJarURL);
                     LOGGER.log(Level.INFO, "Added " + someJarURL + " to classpath");
                     ClasspathJarAppender.addURL(someJarURL);
                 }
-            }
-            catch (MalformedURLException ex) {
+            } catch (MalformedURLException ex) {
                 LOGGER.log(Level.SEVERE, ex.getMessage(), ex);
-            }
-            catch (IOException ex) {
+            } catch (IOException ex) {
                 LOGGER.log(Level.SEVERE, null, ex);
             }
         }
 
-        for(File someJar : extDir.listFiles(new IsJarFilter())) {
+        for (File someJar : extDir.listFiles(new IsJarFilter())) {
             registerExtensionCommandsInJar(someJar);
         }
 
-        for(File aSubDir : extDir.listFiles(DIR_FILTER)) {
+        for (File aSubDir : extDir.listFiles(DIR_FILTER)) {
             registerExtensionCommandsInDir(aSubDir);
         }
     }
@@ -472,22 +498,25 @@ public class LocalRegistrar {
                     entryClass = classFromName(entryName);
                     if (entryClass != null) {
                         if (hasCommands(entryClass, 0)) {
-                            /*We can't check for pre-existing commands becuase the 
+                            /*We can't check for commands previously registerd 
+                             with the same name becuase the 
                              'keys' for the command mappings are not exposed. We can
                              only catch the exception :( 
                              */
-
                             try {
-                                LOGGER.log(Level.INFO, "Registering " + entryClass.getName() + " as Command");
-                                _dispatcherNode.group(entryClass.getSimpleName())
-                                        .describeAs("commands loaded from " + someJarURL)
-                                        .registerMethods(entryClass)
-                                        .parent();
+                                LOGGER.log(Level.INFO, "Registering commands of " + entryClass.getName());
+                                Object cmdInstance = commandInstance(entryClass, _worldEdit);
+                                if (cmdInstance != null) {
+                                    _dispatcherNode.registerMethods(cmdInstance);
+                                } else {
+                                    LOGGER.log(Level.WARNING, "Could not instanceiate  " + entryClass.getName());
+                                }
+
                             } catch (IllegalArgumentException iae) {
                                 LOGGER.log(Level.WARNING, entryName + " not registered becuase it has at least one alias that has been previously registered");
                             }
                         } else {
-                            LOGGER.log(Level.FINE, entryName + " is not annotated as a Command");
+                            LOGGER.log(Level.INFO, entryName + " has no methods annotated as Commands");
                         }
                     } else {
                         LOGGER.log(Level.INFO, "Could not load " + entryName);
@@ -505,19 +534,18 @@ public class LocalRegistrar {
         Class<?> someclass;
         String plainName = entryName.substring(0, entryName.length() - 6).replace("/", ".");
         LOGGER.log(Level.FINE, "Searching for class " + plainName);
-        /**Logger does not support {} formatting**/
+        /**
+         * Logger does not support {} formatting*
+         */
         try {
             someclass = _loaderStub.findClass(plainName);
-        }
-        catch (ClassNotFoundException ex) {
+        } catch (ClassNotFoundException ex) {
             LOGGER.log(Level.SEVERE, ex.getMessage(), ex);
             someclass = null;
-        }
-        catch (RuntimeException ex) {
+        } catch (RuntimeException ex) {
             LOGGER.log(Level.SEVERE, ex.getMessage(), ex);
             someclass = null;
-        }
-        catch (Exception ex) {
+        } catch (Exception ex) {
             LOGGER.log(Level.SEVERE, ex.getMessage(), ex);
             someclass = null;
         }
@@ -529,48 +557,49 @@ public class LocalRegistrar {
         boolean result = false;
         Method[] classMethods;
         Class<?>[] innerClasses;
-        if (depth > MAX_DEPTH){
+        if (depth > MAX_DEPTH) {
             return false;
         }
-        if(!CLASSNAME_FILTER.accept(someClass.getCanonicalName())){
-            LOGGER.log(Level.WARNING, "Skipping unacceptable class " +someClass.getName() );    
+        if (!CLASSNAME_FILTER.accept(someClass.getCanonicalName())) {
+            LOGGER.log(Level.WARNING, "Skipping unacceptable class " + someClass.getName());
             return false;
         }
         try {
             classMethods = someClass.getMethods();
-            for(Method aMethod : classMethods) {
+            for (Method aMethod : classMethods) {
                 boolean isCommand = false;
                 try {
                     isCommand = aMethod.isAnnotationPresent(Command.class);
-                }
-                catch (Exception ex) {
+                    if (isCommand) {
+                        result = true;
+                        break;
+                    }
+                } catch (Exception ex) {
                     LOGGER.log(Level.SEVERE, ex.getMessage(), ex);
                 }
-                if (isCommand){
-                    result = true;
-                    break;
-                }
+
             }
-        }
-        catch (RuntimeException ex) {
+        } catch (RuntimeException ex) {
             LOGGER.log(Level.SEVERE, ex.getMessage(), ex);
+        } /**
+         * Not sure why this is thrown for a loaded class, but whatever
+         */
+        catch (java.lang.NoClassDefFoundError ncdf) {
+            LOGGER.log(Level.SEVERE, "ncdf for " + someClass.getCanonicalName());
+            LOGGER.log(Level.SEVERE, ncdf.getMessage(), ncdf);
         }
-        /**Not sure why this is thrown for a loaded class, but whatever*/
-        catch(java.lang.NoClassDefFoundError ncdf){
-            LOGGER.log(Level.SEVERE, "ncdf for " + someClass.getCanonicalName());              
-            LOGGER.log(Level.SEVERE, ncdf.getMessage(), ncdf);            
-        }
-        if (!result && (depth < MAX_DEPTH)){
+        if (!result && (depth < MAX_DEPTH)) {
             try {
                 innerClasses = someClass.getClasses();
-                for(Class<?> innerClass : innerClasses) {
-                    if (hasCommands(innerClass, depth + 1)){
+                for (Class<?> innerClass : innerClasses) {
+                    if (hasCommands(innerClass, depth + 1)) {
                         result = true;
                         break;
                     }
                 }
-            }
-            /**Can't use Throwable,it enables the StackOverFlowError catastrophe**/
+            } /**
+             * Can't use Throwable,it enables the StackOverFlowError catastrophe*
+             */
             catch (RuntimeException ex) {
                 LOGGER.log(Level.SEVERE, ex.getMessage(), ex);
             }
@@ -578,33 +607,137 @@ public class LocalRegistrar {
         return result;
     }
 
-    /**
-     * Calls RegisterandReturn on every Class that contains Commands, in all of
-     * the jars, in the given directory. This
-     * allows for easy deployment of Java based commands.
-     * @param wcPluginDir the plugin directory, where the command jars are.
-     * @param dispatcherNode the 
-     * @return The same DispatcherNode passed as an argument.
-     */
-    public static DispatcherNode registerJaredCommands(File wcPluginDir, DispatcherNode dispatcherNode){
+    public static List<String> commandAliases(Method commandMethod) {
+        List<String> result = new ArrayList<String>();
         try {
-
-            /** Logger does not support {} **/
-            if (wcPluginDir.exists()){
-                LOGGER.log(Level.INFO, "Searching directory \"" + wcPluginDir.getAbsolutePath() + "\" for Commands");
-                LocalRegistrar jarRegistrar = new LocalRegistrar(dispatcherNode, wcPluginDir);
-                jarRegistrar.registerExtensionCommands();
+            boolean isCommand = commandMethod.isAnnotationPresent(Command.class);
+            if (isCommand) {
+                com.sk89q.minecraft.util.commands.Command commandAnnotation = commandMethod.getAnnotation(Command.class);
+                result.addAll(Arrays.asList(commandAnnotation.aliases()));
+            } else {
+                throw new IllegalArgumentException("Method" + commandMethod.getName() + " is not annotated as a command.");
             }
-            else{
-                LOGGER.log(Level.WARNING, "Plugin directory \"" + wcPluginDir.toString() + "\" does not (yet) exist.");
-                /** Logger does not support {} **/
+        } catch (Exception ex) {
+            LOGGER.log(Level.SEVERE, ex.getMessage(), ex);
+        }
+        return Collections.unmodifiableList(result);
+    }
+
+    public static boolean hasWorldEditConstructor(Class<?> clazz) {
+        boolean result = false;
+        Class<?>[] parameterType = new Class<?>[]{WorldEdit.class};
+        try {
+            result = clazz.getConstructor(parameterType) != null;
+        } catch (NoSuchMethodException ex) {
+            LOGGER.log(Level.SEVERE, null, ex);
+        } catch (SecurityException ex) {
+            LOGGER.log(Level.SEVERE, null, ex);
+        }
+        return result;
+    }
+
+    private static Object commandInstance(Class<?> clazz, WorldEdit worldEdit) {
+        Object result = null;
+        if (hasWorldEditConstructor(clazz)) {
+            try {
+                Class<?>[] parameterType = new Class<?>[]{WorldEdit.class};
+                Object[] arguments = {worldEdit};
+                Constructor<?> constructor = clazz.getConstructor(parameterType);
+                result = constructor.newInstance(arguments);
+            } catch (InstantiationException ex) {
+                LOGGER.log(Level.SEVERE, null, ex);
+            } catch (IllegalAccessException ex) {
+                LOGGER.log(Level.SEVERE, null, ex);
+            } catch (IllegalArgumentException ex) {
+                LOGGER.log(Level.SEVERE, null, ex);
+            } catch (InvocationTargetException ex) {
+                LOGGER.log(Level.SEVERE, null, ex);
+            } catch (NoSuchMethodException ex) {
+                LOGGER.log(Level.SEVERE, null, ex);
+            } catch (SecurityException ex) {
+                LOGGER.log(Level.SEVERE, null, ex);
+            }
+        } else {
+            try {
+                result = clazz.newInstance();
+            } catch (InstantiationException ex) {
+                LOGGER.log(Level.SEVERE, null, ex);
+            } catch (IllegalAccessException ex) {
+                LOGGER.log(Level.SEVERE, null, ex);
+            } catch (IllegalArgumentException ex) {
+                LOGGER.log(Level.SEVERE, null, ex);
+            } catch (SecurityException ex) {
+                LOGGER.log(Level.SEVERE, null, ex);
             }
         }
-        catch (RuntimeException ex) {
+        return result;
+    }
+
+    @SuppressWarnings("unchecked")
+    public static List<Method> commandMethods(Class<?> someClass) {
+        List<Method> result = new ArrayList<Method>();
+        Method[] classMethods;
+        if (!CLASSNAME_FILTER.accept(someClass.getCanonicalName())) {
+            LOGGER.log(Level.WARNING, "Skipping unacceptable class " + someClass.getName());
+            return EMPTY_LIST;
+        }
+        try {
+            classMethods = someClass.getMethods();
+            for (Method aMethod : classMethods) {
+                boolean isCommand;
+                try {
+                    isCommand = aMethod.isAnnotationPresent(Command.class);
+                    if (isCommand) {
+                        result.add(aMethod);
+                        break;
+                    }
+                } catch (Exception ex) {
+                    LOGGER.log(Level.SEVERE, ex.getMessage(), ex);
+                }
+            }
+        } catch (RuntimeException ex) {
+            LOGGER.log(Level.SEVERE, ex.getMessage(), ex);
+        } /**
+         * Not sure why this is thrown for a loaded class, but whatever
+         */
+        catch (java.lang.NoClassDefFoundError ncdf) {
+            LOGGER.log(Level.SEVERE, "ncdf for " + someClass.getCanonicalName());
+            LOGGER.log(Level.SEVERE, ncdf.getMessage(), ncdf);
+        }
+        return Collections.unmodifiableList(result);
+    }
+
+    /**
+     * Calls RegisterandReturn on every Class that contains Commands, in all of
+     * the jars, in the given directory. This allows for easy deployment of Java
+     * based commands.
+     *
+     * @param commandJarsDir the directory where the command jars are.
+     * @param dispatcherNode the
+     * @param worldEdit
+     * @return The same DispatcherNode passed as an argument.
+     */
+    public static DispatcherNode registerJaredCommands(File commandJarsDir, DispatcherNode dispatcherNode, WorldEdit worldEdit) {
+        try {
+
+            /**
+             * Logger does not support {} *
+             */
+            if (commandJarsDir.exists()) {
+                LOGGER.log(Level.INFO, "Searching directory \"" + commandJarsDir.getAbsolutePath() + "\" for Commands");
+                LocalRegistrar jarRegistrar = new LocalRegistrar(dispatcherNode, commandJarsDir, worldEdit);
+                jarRegistrar.registerExtensionCommands();
+            } else {
+                LOGGER.log(Level.WARNING, "Plugin directory \"" + commandJarsDir.toString() + "\" does not (yet) exist.");
+                /**
+                 * Logger does not support {} *
+                 */
+            }
+        } catch (RuntimeException ex) {
             LOGGER.log(Level.SEVERE, ex.getMessage(), ex);
         }
         return dispatcherNode;
-     }
+    }
 
     /**
      * @return the _extenensionsDir
@@ -633,5 +766,5 @@ public class LocalRegistrar {
     private static final ClassNameFilter CLASSNAME_FILTER = new ClassNameFilter();
     private final ClasspathJarAppender _loaderStub = new ClasspathJarAppender();
     private static final int MAX_DEPTH = 5;
-
+    private final WorldEdit _worldEdit;
 }

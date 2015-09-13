@@ -65,6 +65,7 @@ import com.sk89q.worldedit.util.command.fluent.DispatcherNode;
 public final class CommandManager {
 
     public static final Pattern COMMAND_CLEAN_PATTERN = Pattern.compile("^[/]+");
+    public static final File WORLDEDIT_PLUGIN_FOLDER = new File("./plugins/WorldEdit");
     private static final Logger log = Logger.getLogger(CommandManager.class.getCanonicalName());
     private static final Logger commandLog = Logger.getLogger(CommandManager.class.getCanonicalName() + ".CommandLog");
     private static final java.util.regex.Pattern numberFormatExceptionPattern = java.util.regex.Pattern.compile("^For input string: \"(.*)\"$");
@@ -86,7 +87,14 @@ public final class CommandManager {
         this.worldEdit = worldEdit;
         this.platformManager = platformManager;
 
-        // Register this instance for command events
+            /**FIXME. This construction 'chain' suffers from uninitialized instances being 
+            * passed in constructors.
+            * See http://www.ibm.com/developerworks/java/library/j-jtp0618/index.html#2
+            * Never pass 'this' from a Constructor, because the uninitialized 
+            * instance will be erroneous, as WorldEdit and PlatformManager are here.
+            * Write an init method, after construction.          
+            */ 
+        // Register this instance for command events        
         worldEdit.getEventBus().register(this);
 
         // Setup the logger
@@ -104,8 +112,16 @@ public final class CommandManager {
 
         rootDispatcherNode = new CommandGraph()
                 .builder(builder)
-                .commands();
+                .commands();     
         dispatcher = rootDispatcherNode
+       /**We should use platformManager.getConfiguration().getWorkingDirectory()
+        *  and pass it as an argument, but at this point in the code, PlatformManager
+        * is uninitialized!
+        * Lucky for us, getWorkingDirectory() is just new File("."),
+        * so we pass the static final File WORLDEDIT_PLUGIN_FOLDER
+        * initialized in this class before this constructor starts.
+        **/                   
+                        .registerJars(worldEdit,WORLDEDIT_PLUGIN_FOLDER)
                         .registerMethods(new BiomeCommands(worldEdit))
                         .registerMethods(new ChunkCommands(worldEdit))
                         .registerMethods(new ClipboardCommands(worldEdit))
@@ -146,20 +162,6 @@ public final class CommandManager {
                             .parent()
                         .graph()
                 .getDispatcher();
-        try {
-            /**FIXME. This init chain suffers from uninitialized instances being 
-             * passed in constructors.**/
-            /*See http://www.ibm.com/developerworks/java/library/j-jtp0618/index.html#2
-             Never pass 'this' from a Constructor, because the uninitialized 
-            instance will be erronious, as they are here.
-            */
-            /**I would like to use platformManager.getConfiguration().getWorkingDirectory() but it is uninitialized!
-             Lucky for us, getWorkingDirectory() is just new File(".") anyway. **/
-            LocalRegistrar.registerJaredCommands(new File("./plugins/WorldEdit"), rootDispatcherNode); /*Adds commands within jars in WorldEdit dir*/
-
-        } catch (Exception ex) {
-            log.log(Level.SEVERE, ex.getMessage(), ex);
-        }
     }
 
     void register(Platform platform) {
