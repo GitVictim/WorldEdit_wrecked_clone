@@ -68,7 +68,10 @@ public class PlatformManager {
     private static final Logger logger = Logger.getLogger(PlatformManager.class.getCanonicalName());
 
     private final WorldEdit worldEdit;
-    private final CommandManager commandManager;
+    /**This is tricky. We would prefer CommandManager to be
+     * final, but it is constructed with 'this', and then puts itself on
+     * an event queue. Leaking the uninitialized 'this' created other problems.**/    
+    private CommandManager commandManager;
     private final List<Platform> platforms = new ArrayList<Platform>();
     private final Map<Capability, Platform> preferences = new EnumMap<Capability, Platform>(Capability.class);
     private @Nullable String firstSeenVersion;
@@ -83,12 +86,21 @@ public class PlatformManager {
     public PlatformManager(WorldEdit worldEdit) {
         checkNotNull(worldEdit);
         this.worldEdit = worldEdit;
-        this.commandManager = new CommandManager(worldEdit, this);
-
-        // Register this instance for events
-        worldEdit.getEventBus().register(this);
     }
 
+    /**
+     * Constructs a CommandManager if it does not exist, and adds it to the
+     * worldEdit event bus. We do this initialization here, instead of in the
+     * constructor, to insure that all instances are fully initialized when 
+     * they are added to that event queue.
+     */
+    public final void init() {
+        if (commandManager == null) {
+            this.commandManager = new CommandManager(worldEdit, this);
+            // Register this instance for events
+            worldEdit.getEventBus().register(this);
+        }
+    }
     /**
      * Register a platform with WorldEdit.
      *
@@ -270,6 +282,7 @@ public class PlatformManager {
      * @return the command manager
      */
     public CommandManager getCommandManager() {
+        init();
         return commandManager;
     }
 

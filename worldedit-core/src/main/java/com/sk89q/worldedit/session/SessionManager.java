@@ -75,11 +75,12 @@ public class SessionManager {
     public SessionManager(WorldEdit worldEdit) {
         checkNotNull(worldEdit);
         this.worldEdit = worldEdit;
+    }
 
+    public final void init() {
         worldEdit.getEventBus().register(this);
         timer.schedule(new SessionTracker(), FLUSH_PERIOD, FLUSH_PERIOD);
     }
-
     /**
      * Get whether a session exists for the given owner.
      *
