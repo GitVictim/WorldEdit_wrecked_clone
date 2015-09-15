@@ -94,7 +94,7 @@ public final class CommandManager {
             * instance will be erroneous, as WorldEdit and PlatformManager are here.
             * Write an init method, after construction.
             */
-        // Register this instance for command events
+        // Register this instance for command events        
         worldEdit.getEventBus().register(this);
 
         // Setup the logger
@@ -112,7 +112,7 @@ public final class CommandManager {
 
         rootDispatcherNode = new CommandGraph()
                 .builder(builder)
-                .commands();
+                .commands();     
         dispatcher = rootDispatcherNode
        /**We should use platformManager.getConfiguration().getWorkingDirectory()
         *  and pass it as an argument, but at this point in the code, PlatformManager
@@ -344,4 +344,29 @@ public final class CommandManager {
         return rootDispatcherNode;
     }
 
+    /**
+     * Get the root DispatcherNode. The rootDispatcherNode is the DispatcherNode
+     * internal to the CommandGraph created by the CommandManager. This is the
+     * only data structure that external commands can be registered upon. For
+     * example, to register a FancyCommands object's methods as commands, try
+     * something like
+     * <pre>
+     * {@code
+     *        WorldEdit worldEdit = WorldEdit.getInstance();
+     * 
+     *        DispatcherNode rootDispatcherNode = worldEdit.getInstance()
+     *                .getPlatformManager()
+     *                .getCommandManager()
+     *                .getRootDispatcherNode();
+     * 
+     *       rootDispatcherNode .registerMethods(new FancyCommands(worldEdit));
+     * }
+     * </pre>
+     *
+     * @return the root DispatcherNode
+     */  
+    public DispatcherNode getRootDispatcherNode(){
+        return rootDispatcherNode;
+    } 
+    
 }
