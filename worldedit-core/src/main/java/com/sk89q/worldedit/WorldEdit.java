@@ -90,9 +90,12 @@ public class WorldEdit {
     private static String version;
 
     private final EventBus eventBus = new EventBus();
-    private final PlatformManager platformManager = new PlatformManager(this);
+    /**This is tricky. We would prefer PlatformManager and SessionManager to be
+     * final, but they are constructed with 'this', and then put themselves on
+     * event queues. Leaking the uninitialized 'this' created other problems.**/
+    private PlatformManager platformManager = null;
+    private SessionManager sessions = null;    
     private final EditSessionFactory editSessionFactory = new EditSessionFactory.EditSessionFactoryImpl(eventBus);
-    private final SessionManager sessions = new SessionManager(this);
 
     private final BlockFactory blockFactory = new BlockFactory(this);
     private final MaskFactory maskFactory = new MaskFactory(this);
@@ -106,7 +109,23 @@ public class WorldEdit {
 
     private WorldEdit() {
     }
-
+    
+    private void init() {
+        /**PlatformManager and SessionManager are special, they put themselves on
+         * an event queue. So we must not pass it 'this' until this (WorldEdit)
+         * is fully constructed, and THEY must stay off event queues until they
+         * are fully constructed. Otherwise, API clients will end up accessing 
+         * uninitialized instances, and strange BAD THINGs happen.
+         **/
+        if (platformManager == null) {
+            platformManager = new PlatformManager(this);
+            platformManager.init();
+        }
+        if (sessions == null) {
+            sessions = new SessionManager(this);
+            sessions.init();
+        }        
+    }
     /**
      * Gets the current instance of this class.
      *
@@ -117,6 +136,7 @@ public class WorldEdit {
      * @return an instance of WorldEdit.
      */
     public static WorldEdit getInstance() {
+        instance.init();
         return instance;
     }
 
