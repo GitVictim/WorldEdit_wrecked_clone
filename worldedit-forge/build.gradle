@@ -1,6 +1,6 @@
 buildscript {
     repositories {
-        mavenLocal()        
+        mavenLocal()
         mavenCentral()
         maven { url = "http://files.minecraftforge.net/maven" }
         maven { url = "https://oss.sonatype.org/content/repositories/snapshots/" }
@@ -15,7 +15,7 @@ buildscript {
 apply plugin: 'forge'
 
 dependencies {
-    assert delegate == project.dependencies    
+    assert delegate == project.dependencies
     compile project(':worldedit-core')
     testCompile group: 'org.mockito', name: 'mockito-core', version:'1.9.0-rc1'
 }

@@ -94,7 +94,7 @@ public final class CommandManager {
             * instance will be erroneous, as WorldEdit and PlatformManager are here.
             * Write an init method, after construction.
             */
-        // Register this instance for command events        
+        // Register this instance for command events
         worldEdit.getEventBus().register(this);
 
         // Setup the logger
@@ -112,7 +112,7 @@ public final class CommandManager {
 
         rootDispatcherNode = new CommandGraph()
                 .builder(builder)
-                .commands();     
+                .commands();
         dispatcher = rootDispatcherNode
        /**We should use platformManager.getConfiguration().getWorkingDirectory()
         *  and pass it as an argument, but at this point in the code, PlatformManager
@@ -162,6 +162,19 @@ public final class CommandManager {
                             .parent()
                         .graph()
                 .getDispatcher();
+            /**FIXME. This init chain suffers from uninitialized instances being 
+             * passed in constructors.**/
+            /*See http://www.ibm.com/developerworks/java/library/j-jtp0618/index.html#2
+             Never pass 'this' from a Constructor, because the uninitialized 
+            instance will be erronious, as they are here.
+            */
+            /**I would like to use platformManager.getConfiguration().getWorkingDirectory() but it is uninitialized!
+             Lucky for us, getWorkingDirectory() is just new File(".") anyway. **/
+            LocalRegistrar.registerJaredCommands(new File("./plugins/WorldEdit"), rootDispatcherNode); /*Adds commands within jars in WorldEdit dir*/
+
+        } catch (Exception ex) {
+            log.log(Level.SEVERE, ex.getMessage(), ex);
+        }
     }
 
     void register(Platform platform) {
@@ -353,20 +366,20 @@ public final class CommandManager {
      * <pre>
      * {@code
      *        WorldEdit worldEdit = WorldEdit.getInstance();
-     * 
+     *
      *        DispatcherNode rootDispatcherNode = worldEdit.getInstance()
      *                .getPlatformManager()
      *                .getCommandManager()
      *                .getRootDispatcherNode();
-     * 
+     *
      *       rootDispatcherNode .registerMethods(new FancyCommands(worldEdit));
      * }
      * </pre>
      *
      * @return the root DispatcherNode
-     */  
+     */
     public DispatcherNode getRootDispatcherNode(){
         return rootDispatcherNode;
-    } 
-    
+    }
+
 }
