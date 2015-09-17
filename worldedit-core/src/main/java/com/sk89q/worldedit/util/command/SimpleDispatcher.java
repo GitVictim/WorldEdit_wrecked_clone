@@ -61,11 +61,11 @@ public class SimpleDispatcher implements Dispatcher {
         message.append("Registering ");
         for(String cmdAlias : alias){
             message.append(" ");
-            message.append(cmdAlias);            
+            message.append(cmdAlias);
         }
         LOGGER.log(Level.FINE, message.toString() );
         CommandMapping mapping = new SimpleCommandMapping(callable, alias);
-        
+
         // Check for replacements
         for (String a : alias) {
             String lower = a.toLowerCase();
@@ -74,7 +74,7 @@ public class SimpleDispatcher implements Dispatcher {
                         "Replacing commands is currently undefined behavior");
             }
         }
-        
+
         for (String a : alias) {
             String lower = a.toLowerCase();
             commands.put(lower, mapping);
@@ -85,12 +85,12 @@ public class SimpleDispatcher implements Dispatcher {
     public Set<CommandMapping> getCommands() {
         return Collections.unmodifiableSet(new HashSet<CommandMapping>(commands.values()));
     }
-    
+
     @Override
     public Set<String> getAliases() {
         return Collections.unmodifiableSet(commands.keySet());
     }
-    
+
     @Override
     public Set<String> getPrimaryAliases() {
         Set<String> aliases = new HashSet<String>();
